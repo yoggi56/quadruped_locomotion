@@ -135,7 +135,7 @@ class Locomotion_Control(object):
             self.hl_cmd_data[3*k+1][3] = self.kp_hip
             self.hl_cmd_data[3*k+2][3] = self.kp_knee
         self.lcm_exch.send_hl_cmd(self.hl_cmd_data)
-        print("State: Do Nothing")
+        #print("State: Do Nothing!")
 
 
     def kpkd_inc(self, kp_inc):
@@ -172,6 +172,7 @@ class Locomotion_Control(object):
         self.theta_ref = self.get_theta_cur()
         
         step = consts.BODY_MOTION_STEP
+        step_angle = consts.BODY_MOTION_STEP*200
         # start going up to 10 cm
         self.ef_ref_pos = self.fk.calculate(self.theta_ref)
         print("Start theta: {0}".format(self.theta_ref))
@@ -179,7 +180,162 @@ class Locomotion_Control(object):
         print("Start ik desired theta: {0}".format(self.ik.calculate(self.ef_ref_pos, self.theta_ref)))
         self.send_theta_ref(self.theta_ref)
         
-        #e_R1 = 
+        # turn knee
+        while(True):
+            self.theta_cur = self.get_theta_cur()
+            e_R1_sh = -2.8 - self.theta_cur[1]
+            e_L1_sh = 3 - self.theta_cur[4]
+            e_R2_sh = 0.17 - self.theta_cur[7]
+            e_L2_sh = -0.17 - self.theta_cur[10]
+            e_R1_hip = 2.5 - self.theta_cur[2]
+            e_L1_hip = 2.5 - self.theta_cur[5]
+            e_R2_hip = 2.5 - self.theta_cur[8]
+            e_L2_hip = 2.5 - self.theta_cur[11]
+            if abs(e_R1_sh) > 0.002:
+                if e_R1_sh > 0:
+                    self.theta_ref[1] += step_angle
+                else:
+                    self.theta_ref[1] -= step_angle
+            if abs(e_R1_hip) > 0.002:
+                if e_R1_hip > 0:
+                    self.theta_ref[2] += step_angle
+                else:
+                    self.theta_ref[2] -= step_angle
+            
+            if abs(e_L1_sh) > 0.002:
+                if e_L1_sh > 0:
+                    self.theta_ref[4] += step_angle
+                else:
+                    self.theta_ref[4] -= step_angle
+            if abs(e_L1_hip) > 0.002:
+                if e_L1_hip > 0:
+                    self.theta_ref[5] -= step_angle
+                else:
+                    self.theta_ref[5] += step_angle
+
+            if abs(e_R2_sh) > 0.002:
+                if e_R2_sh > 0:
+                    self.theta_ref[7] += step_angle
+                else:
+                    self.theta_ref[7] -= step_angle
+            if abs(e_R2_hip) > 0.002:
+                if e_R2_hip > 0:
+                    self.theta_ref[8] += step_angle
+                else:
+                    self.theta_ref[8] -= step_angle
+
+            if abs(e_L2_sh) > 0.002:
+                if e_L2_sh > 0:
+                    self.theta_ref[10] += step_angle
+                else:
+                    self.theta_ref[10] -= step_angle
+            if abs(e_L2_hip) > 0.002:
+                if e_L2_hip > 0:
+                    self.theta_ref[11] -= step_angle
+                else:
+                    self.theta_ref[11] += step_angle
+            
+
+            if abs(e_R1_sh) <= 0.02 and abs(e_R1_hip) <= 0.02:
+                break 
+
+            self.kpkd_inc([kp_sh_inc, kp_hip_inc, kp_knee_inc])
+            self.send_theta_ref(self.theta_ref)
+            time.sleep(self.ll_hl_period)
+
+        # turn all hips
+        while(True):
+            self.theta_cur = self.get_theta_cur()
+            e_R1 = 0 - self.theta_cur[0]
+            e_L1 = 0 - self.theta_cur[3]
+            e_R2 = 0 - self.theta_cur[6]
+            e_L2 = 0 - self.theta_cur[9]
+            if abs(e_R1) > 0.002:
+                if e_R1 > 0:
+                    self.theta_ref[0] += step_angle
+                else:
+                    self.theta_ref[0] -= step_angle
+            if abs(e_L1) > 0.002:
+                if e_L1 > 0:
+                    self.theta_ref[3] += step_angle
+                else:
+                    self.theta_ref[3] -= step_angle
+            if abs(e_R2) > 0.002:
+                if e_R2 > 0:
+                    self.theta_ref[6] += step_angle
+                else:
+                    self.theta_ref[6] -= step_angle
+            if abs(e_L2) > 0.002:
+                if e_L2 > 0:
+                    self.theta_ref[9] += step_angle
+                else:
+                    self.theta_ref[9] -= step_angle
+
+            if  abs(e_R1) <= 0.002 and abs(e_R2) <= 0.005 and abs(e_L1) <= 0.002 and abs(e_L2) <= 0.002:
+                break
+
+            self.kpkd_inc([kp_sh_inc, kp_hip_inc, kp_knee_inc])
+            self.send_theta_ref(self.theta_ref)
+            time.sleep(self.ll_hl_period)
+        
+        self.theta_cur = self.get_theta_cur()
+        self.ef_ref_pos = self.fk.calculate(self.theta_cur)
+
+        # move feet to XY start pos
+        while(True):
+            if self.ef_ref_pos[1]["x"] < consts.EF_F_INIT_X:
+                self.ef_ref_pos[1]["x"] += step
+            if self.ef_ref_pos[1]["y"] < -consts.EF_INIT_Y:
+                self.ef_ref_pos[1]["y"] += step
+
+            if self.ef_ref_pos[2]["x"] < consts.EF_F_INIT_X:
+                self.ef_ref_pos[2]["x"] += step
+            if self.ef_ref_pos[2]["y"] > consts.EF_INIT_Y:
+                self.ef_ref_pos[2]["y"] -= step
+
+            if self.ef_ref_pos[3]["x"] < -consts.EF_R_INIT_X:
+                self.ef_ref_pos[3]["x"] += step
+            if self.ef_ref_pos[3]["y"] < -consts.EF_INIT_Y:
+                self.ef_ref_pos[3]["y"] += step
+
+            if self.ef_ref_pos[4]["x"] < -consts.EF_R_INIT_X:
+                self.ef_ref_pos[4]["x"] += step
+            if self.ef_ref_pos[4]["y"] > consts.EF_INIT_Y:
+                self.ef_ref_pos[4]["y"] -= step
+
+            print(self.ef_ref_pos[1]["y"])
+
+            if (self.ef_ref_pos[1]["x"] >= consts.EF_F_INIT_X and
+                self.ef_ref_pos[1]["y"] >= -consts.EF_INIT_Y and
+                self.ef_ref_pos[2]["x"] >= consts.EF_F_INIT_X and
+                self.ef_ref_pos[2]["y"] <= consts.EF_INIT_Y and
+                self.ef_ref_pos[3]["x"] >= -consts.EF_R_INIT_X and
+                self.ef_ref_pos[3]["y"] >= -consts.EF_INIT_Y and
+                self.ef_ref_pos[4]["x"] >= -consts.EF_R_INIT_X and
+                self.ef_ref_pos[4]["y"] <= consts.EF_INIT_Y):
+                print("stop")
+                break
+
+            self.theta_ref = self.ik.calculate(self.ef_ref_pos)
+            self.send_theta_ref(self.theta_ref)
+            time.sleep(self.ll_hl_period)
+
+        # stand up
+        if self.ef_ref_pos[1]["z"] > -consts.ROBOT_HEIGHT:
+            while ((self.ef_ref_pos[1]["z"] > -consts.ROBOT_HEIGHT) and
+                    (self.ef_ref_pos[2]["z"] > -consts.ROBOT_HEIGHT) and
+                    (self.ef_ref_pos[3]["z"] > -consts.ROBOT_HEIGHT) and
+                    (self.ef_ref_pos[4]["z"] > -consts.ROBOT_HEIGHT)):
+                self.ef_ref_pos = self.b_mov.move([0,0,step], [0,0,0], self.ef_ref_pos)
+                self.theta_ref = self.ik.calculate(self.ef_ref_pos, self.theta_ref)
+                # print("theta_ref: {0}".format(self.theta_ref))
+                # print("ef_ref_pos: {0}".format(self.ef_ref_pos))
+                
+                self.kpkd_inc([kp_sh_inc, kp_hip_inc, kp_knee_inc])
+                self.send_theta_ref(self.theta_ref)
+                time.sleep(self.ll_hl_period)
+
+        #time.sleep(5)
         
 
     def control(self):
@@ -242,81 +398,8 @@ class Locomotion_Control(object):
         pass
 
     def go_sleep(self):
-        step = consts.BODY_MOTION_STEP
-        x_offset_step = self.x_offset/consts.BODY_MOTION_CYCLE_X
-        for i in range(consts.BODY_MOTION_CYCLE_X):
-            self.ef_ref_pos = self.b_mov.move([-x_offset_step,0,0], [0,0,0], self.ef_ref_pos)
-            self.theta_ref = self.ik.calculate(self.ef_ref_pos)
-            self.send_theta_ref(self.theta_ref)
-            time.sleep(self.ll_hl_period)
-
-        # x_des = [0.3063, 0.3063, -0.2568, -0.2568]
-        #y_des = [-0.22, 0.22, -0.22, 0.22]
-        for i in range(1,5):
-            # init XY variables
-            #lx_inc = (x_des[i-1]-self.ef_ref_pos[i]["x"])/250
-            ly_inc = (consts.Y_DES_GS[i-1]-self.ef_ref_pos[i]["y"])/consts.EF_MOTION_DEN
-            print("go body into leg polygon")
-            if i == 1:
-                sign1 = -1
-                sign2 = 1
-            elif i == 2:
-                sign1 = -1
-                sign2 = -1
-            elif i == 3:
-                sign1 = 1
-                sign2 = 1
-            elif i == 4:
-                sign1 = 1
-                sign2 = -1
-            for k in range(consts.BODY_MOTION_CYCLE_X):
-                self.ef_ref_pos = self.b_mov.move([sign1*step,sign2*step,0], [0,0,0], self.ef_ref_pos)
-                self.theta_ref = self.ik.calculate(self.ef_ref_pos)
-                self.send_theta_ref(self.theta_ref)
-                time.sleep(self.ll_hl_period)
-
-            print("Leg{0} up".format(i))
-            while (self.ef_ref_pos[i]["z"] < -consts.ROBOT_HEIGHT/1.5):
-                self.ef_ref_pos[i]["z"] += consts.EF_MOTION_STEP
-                self.theta_ref = self.ik.calculate(self.ef_ref_pos)
-                self.send_theta_ref(self.theta_ref)
-                time.sleep(self.ll_hl_period)
-            
-            print("Leg{0} go XY".format(i))
-            if i == 1 or i == 3:
-                sign3 = 1
-                sign4 = 1
-            elif i == 2 or i == 4:
-                sign3 = 1
-                sign4 = 1
-            for k in range(consts.EF_MOTION_DEN):
-                #self.ef_ref_pos[i]["x"] = self.ef_ref_pos[i]["x"] + sign3*lx_inc
-                self.ef_ref_pos[i]["y"] = self.ef_ref_pos[i]["y"] + sign4*ly_inc
-                self.theta_ref = self.ik.calculate(self.ef_ref_pos)
-                self.send_theta_ref(self.theta_ref)
-                time.sleep(self.ll_hl_period)
-
-            print("Leg{0} down".format(i))
-            while (self.ef_ref_pos[i]["z"] > -consts.ROBOT_HEIGHT):
-                self.ef_ref_pos[i]["z"] -= consts.EF_MOTION_STEP
-                self.theta_ref = self.ik.calculate(self.ef_ref_pos)
-                self.send_theta_ref(self.theta_ref)
-                time.sleep(self.ll_hl_period)
-
-            print("go body in COG")
-            for k in range(consts.BODY_MOTION_CYCLE_X):
-                self.ef_ref_pos = self.b_mov.move([-sign1*step,-sign2*step,0], [0,0,0], self.ef_ref_pos)
-                self.theta_ref = self.ik.calculate(self.ef_ref_pos)
-                self.send_theta_ref(self.theta_ref)
-                time.sleep(self.ll_hl_period)
-            print(self.ef_ref_pos[1]["x"], self.ef_ref_pos[1]["y"], self.ef_ref_pos[1]["z"])
-
-
-        while (self.ef_ref_pos[1]["z"] < consts.Z_DES_GS):
-            self.ef_ref_pos = self.b_mov.move([0,0,-step], [0,0,0], self.ef_ref_pos)
-            self.theta_ref = self.ik.calculate(self.ef_ref_pos)
-            self.send_theta_ref(self.theta_ref)
-            time.sleep(self.ll_hl_period)
+        print("State: Go Sleep")
+        time.sleep(5)
         
 
     def step(self):

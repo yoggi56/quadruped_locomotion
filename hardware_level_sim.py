@@ -58,18 +58,18 @@ class Hardware_Level_Sim(object):
         # self.init_ref_pos[9] = -0.0
         # self.init_ref_pos[10] = -0.0
         # self.init_ref_pos[11] = -0.0
-        self.init_ref_pos[0] = -0.17
-        self.init_ref_pos[1] = -3
-        self.init_ref_pos[2] = 2.53
-        self.init_ref_pos[3] = 0.17
-        self.init_ref_pos[4] = 3
-        self.init_ref_pos[5] = -2.53
-        self.init_ref_pos[6] = 0.17
-        self.init_ref_pos[7] = 0.17
-        self.init_ref_pos[8] = 2.53
-        self.init_ref_pos[9] = -0.17
-        self.init_ref_pos[10] = -0.17
-        self.init_ref_pos[11] = -2.53
+        self.init_ref_pos[0] = -0.97
+        self.init_ref_pos[1] = -2
+        self.init_ref_pos[2] = 1.53
+        self.init_ref_pos[3] = 0.97
+        self.init_ref_pos[4] = 2
+        self.init_ref_pos[5] = -1.53
+        self.init_ref_pos[6] = 0.97
+        self.init_ref_pos[7] = 0.97
+        self.init_ref_pos[8] = 1.53
+        self.init_ref_pos[9] = -0.97
+        self.init_ref_pos[10] = -0.97
+        self.init_ref_pos[11] = -1.53
     def init_simulation(self):
         self.jointIds = []
         p.setAdditionalSearchPath(pybullet_data.getDataPath())  # optionally
