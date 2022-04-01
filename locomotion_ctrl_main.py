@@ -134,6 +134,12 @@ class Locomotion_Control(object):
             self.hl_cmd_data[3*k][3] = self.kp_sh
             self.hl_cmd_data[3*k+1][3] = self.kp_hip
             self.hl_cmd_data[3*k+2][3] = self.kp_knee
+
+        self.hl_cmd_data[3-1][2] = 0
+        self.hl_cmd_data[6-1][2] = 0
+        self.hl_cmd_data[9-1][2] = 0
+        self.hl_cmd_data[12-1][2] = 0
+
         self.lcm_exch.send_hl_cmd(self.hl_cmd_data)
         #print("State: Do Nothing!")
 
@@ -399,7 +405,46 @@ class Locomotion_Control(object):
 
     def go_sleep(self):
         print("State: Go Sleep")
-        time.sleep(5)
+
+        step = consts.BODY_MOTION_STEP
+        step_angle = consts.BODY_MOTION_STEP*200
+
+        # go down
+        while (self.ef_ref_pos[1]["z"] < consts.Z_DES_GS):
+            self.ef_ref_pos = self.b_mov.move([0,0,-step], [0,0,0], self.ef_ref_pos)
+            self.theta_ref = self.ik.calculate(self.ef_ref_pos)
+            self.send_theta_ref(self.theta_ref)
+            time.sleep(self.ll_hl_period)
+        
+        # move feet to XY sleeping pos
+        while(True):
+            if self.ef_ref_pos[1]["y"] > consts.Y_DES_GS[0]:
+                self.ef_ref_pos[1]["y"] -= step
+
+            if self.ef_ref_pos[2]["y"] < consts.Y_DES_GS[1]:
+                self.ef_ref_pos[2]["y"] += step
+
+            if self.ef_ref_pos[3]["y"] > consts.Y_DES_GS[2]:
+                self.ef_ref_pos[3]["y"] -= step
+
+            if self.ef_ref_pos[4]["y"] < consts.Y_DES_GS[3]:
+                self.ef_ref_pos[4]["y"] += step
+
+            if (self.ef_ref_pos[1]["y"] <= consts.Y_DES_GS[0] and
+                self.ef_ref_pos[2]["y"] >= consts.Y_DES_GS[1] and
+                self.ef_ref_pos[3]["y"] <= consts.Y_DES_GS[2] and
+                self.ef_ref_pos[4]["y"] >= consts.Y_DES_GS[3]):
+                break
+
+            self.theta_ref = self.ik.calculate(self.ef_ref_pos)
+            self.send_theta_ref(self.theta_ref)
+            time.sleep(self.ll_hl_period)
+        
+        while (self.ef_ref_pos[1]["z"] < (consts.Z_DES_GS+0.09)):
+            self.ef_ref_pos = self.b_mov.move([0,0,-step], [0,0,0], self.ef_ref_pos)
+            self.theta_ref = self.ik.calculate(self.ef_ref_pos)
+            self.send_theta_ref(self.theta_ref)
+            time.sleep(self.ll_hl_period)
         
 
     def step(self):
