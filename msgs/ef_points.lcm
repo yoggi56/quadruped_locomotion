@@ -1,0 +1,8 @@
+package msgs;
+
+struct ef_point
+{
+	float x[4];
+    float y[4];
+    float z[4];
+}

@@ -1,0 +1,6 @@
+package msgs;
+
+struct ref_angles
+{
+	float angle[12];
+}

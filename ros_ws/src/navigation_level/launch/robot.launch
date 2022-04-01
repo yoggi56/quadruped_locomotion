@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="navigation_level" type="ros2lcm.py" name="ros2lcm" output="screen"/>
+  <node pkg="navigation_level" type="lcm2ros.py" name="lcm2ros" output="screen"/>
+  <node pkg="navigation_level" type="lcm2ros_ll_state.py" name="lcm2ros_ll_state" output="screen"/>
+</launch>

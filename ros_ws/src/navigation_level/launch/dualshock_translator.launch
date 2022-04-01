@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="addr" default="" />
+
+  <node pkg="navigation_level" type="navigation_main.py" name="navigation_main" output="screen"/>
+  <node pkg="navigation_level" type="ros2lcm.py" name="ros2lcm" output="screen"/>
+  <node pkg="navigation_level" type="lcm2ros.py" name="lcm2ros" output="screen"/>
+  <node pkg="navigation_level" type="lcm2ros_ll_state.py" name="lcm2ros_ll_state" output="screen"/>
+  <node name="ds4_driver" pkg="ds4_driver" type="ds4_driver_node.py" output="screen"/>
+  
+  <!-- <include file="$(find ds4_driver)/launch/ds4_driver.launch" >
+    <arg name="addr" value="$(arg addr)" />
+    <arg name="use_standard_msgs" value="false" />
+  </include> -->
+</launch>

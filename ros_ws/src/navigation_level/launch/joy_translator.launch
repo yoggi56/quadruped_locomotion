@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="addr" default="" />
+
+  <node pkg="navigation_level" type="navigation_main.py" name="navigation_main" output="screen"/>
+  <node pkg="navigation_level" type="ros2lcm.py" name="ros2lcm" output="screen"/>
+  <node pkg="navigation_level" type="lcm2ros.py" name="lcm2ros" output="screen"/>
+  <node pkg="joy" type="joy_node" name="joy_node" output="screen"/>
+
+</launch>

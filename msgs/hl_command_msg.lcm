@@ -1,0 +1,15 @@
+package msgs;
+
+struct act_command
+{
+	float position;
+	float velocity;
+	float torque;
+	float kp;
+	float kd;
+}
+
+struct hl_command_msg
+{
+	act_command act[12];
+}

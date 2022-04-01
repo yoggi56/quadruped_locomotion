@@ -1,0 +1,46 @@
+package msgs;
+
+struct robot_params
+{
+	float robot_dx;
+	float robot_dy;
+	float robot_dz;
+	float robot_step_freq;
+	float robot_step_lenght;
+	float robot_step_height;
+	int16_t robot_gait_type;
+}
+
+struct ef_point
+{
+	float x[4];
+    float y[4];
+    float z[4];
+}
+
+struct body_velocity
+{
+	float vx;
+	float vy;
+	float vz;
+	float wx;
+	float wy;
+	float wz;
+}
+
+struct servo_check
+{
+	float ref_angle[12];
+}
+
+struct robot_ref_com
+{
+	boolean start;
+	int16_t mode;
+	
+	robot_params robot_prms;
+	ef_point ref_ef_pt;
+	body_velocity body_vel;
+	servo_check srv_check;
+	int16_t cute_action_num;
+}

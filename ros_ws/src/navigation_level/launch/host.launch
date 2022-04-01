@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="navigation_level" type="navigation_main.py" name="navigation_main" output="screen"/>
+  <node name="ds4_driver" pkg="ds4_driver" type="ds4_driver_node.py" output="screen"/>
+  <!-- <node pkg="joy" type="joy_node" name="joy_node" output="screen"/> -->
+</launch>
